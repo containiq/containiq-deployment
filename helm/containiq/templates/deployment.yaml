@@ -1,0 +1,48 @@
+#deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "containiq.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{.Values.replicaCount}}
+  selector:
+    matchLabels:
+      app: containiq
+  template:
+    metadata:
+      labels:
+        app: containiq
+    spec:
+      containers:
+        - name: containiq
+          image: "{{ .Values.image.repository }}:{{ default .Chart.AppVersion .Values.image.tag }}"
+          env:
+            - name: CONFIG_FILE_LOCATION
+              value: /containiq/config.yaml
+            - name: NOTIFICATION_FILE_LOCATION
+              value: /containiq/notification-config.yaml
+          volumeMounts:
+            - name: containiqconfig
+              mountPath: /containiq
+      serviceAccountName: {{ include "containiq.serviceAccountName" . }}
+      volumes:
+        - name: containiqconfig
+          projected:
+            sources:
+              - configMap:
+                  name: {{ include "containiq.fullname" . }}-configmap
+              - secret:
+                  name: {{ include "containiq.fullname" . }}-secret
+      {{- with .Values.nodeSelector}}
+      nodeSelector:
+        {{- toYaml . | nindent 8}}
+      {{end}}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations:
+        {{- toYaml .Values.tolerations | nindent 8}}
+      {{- end}}

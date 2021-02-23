@@ -1,0 +1,128 @@
+#namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  creationTimestamp: null
+  name: containiq
+spec: {}
+status: {}
+---
+#deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: containiq
+  namespace: containiq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: containiq
+  template:
+    spec:
+      containers:
+        - name: containiq
+          image: "containiq/containiq"
+          env:
+            - name: CONFIG_FILE_LOCATION
+              value: /containiq/config.yaml
+            - name: NOTIFICATION_FILE_LOCATION
+              value: /containiq/notification-config.yaml
+          volumeMounts:
+            - name: containiqconfig
+              mountPath: /containiq
+      imagePullSecrets:
+        - name: regcred
+      serviceAccountName: containiq-sa
+      volumes:
+        - name: containiqconfig
+          projected:
+            sources:
+              - configMap:
+                  name: containiqcmap
+              - secret:
+                  name: containiq-notification
+    metadata:
+      labels:
+        app: containiq
+---
+#configmap
+apiVersion: v1
+data:
+  config.yaml: |-
+    monitoring:
+      namespaces:
+         watch:
+            - default #change to all if you would like to watch all namespaces
+            - testing
+      level:
+        watch:
+          - Warning #options are Warning and Normal
+          - Normal
+      resource:
+        watch:
+          - Pod #Change to all to watch all resources
+          - ReplicaSet
+          - Deployment
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: containiqcmap
+  namespace: containiq
+---
+#service account
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  creationTimestamp: null
+  name: containiq-sa
+  namespace: containiq
+---
+#clusterrole
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: containiq
+rules:
+  - apiGroups:
+      - ""
+    resources: ["*"]
+    verbs: ["get","watch","list"]
+
+---
+#clusterrolebinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  creationTimestamp: null
+  name: containiq
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: containiq
+subjects:
+  - kind: ServiceAccount
+    namespace: containiq
+    name: containiq-sa
+---
+#notification secret
+apiVersion: v1
+kind: Secret
+metadata:
+  creationTimestamp: null
+  name: containiq-notification
+  namespace: containiq
+stringData:
+  notification-config.yaml: |
+    Source:
+      Slack:
+        Key: <SLACK_TOKEN>
+        enabled: true
+        channel: testing
+      Webhook:
+        enabled: false
+        url:
+      Containiq:
+        Key: <CONTAINIQ_API_KEY>
+
