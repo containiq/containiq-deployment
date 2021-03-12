@@ -28,7 +28,8 @@ Next invite the containiq bot, by using the command `/invite @containiq` in your
 ### Using Helm 
 `helm repo add containiq https://containiq.github.io/charts/`
 `helm repo update`
-#### Helm example install 
+
+#### Helm 2
 ```
 helm install containiq containiq/containiq --namespace=containiq \
  --set comm.Source.Slack.enabled=true \
@@ -37,7 +38,19 @@ helm install containiq containiq/containiq --namespace=containiq \
  --set comm.Source.Containiq.Key=<CONTAINIQ_API_KEY> \
  --set configuration.monitoring.namespaces.watch="{default,namespace2}" 
  ```
+
+ #### Helm 3
  
+ ```
+helm install containiq containiq/containiq --namespace=containiq \
+--create-namespace \
+--set comm.Source.Slack.enabled=true \
+--set comm.Source.Slack.channel=testing \
+--set comm.Source.Slack.Key=<SLACK_TOKEN> \
+--set comm.Source.Containiq.Key=<CONTAINIQ_API_KEY> \
+--set configuration.monitoring.namespaces.watch="{default,namespace2}" 
+  ```
+
 for a full list of available configuration options please see values.yaml file in helm/containiq/
 
 
