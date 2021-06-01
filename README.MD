@@ -44,7 +44,7 @@ helm install containiq containiq/containiq --namespace=containiq \
  ```
 helm install containiq containiq/containiq --namespace=containiq \
 --create-namespace \
---set comm.Source.Key=<CONTAINIQ_API_KEY> \
+--set comm.Key=<CONTAINIQ_API_KEY> \
 ```
 
 
