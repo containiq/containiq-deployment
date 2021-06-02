@@ -23,15 +23,17 @@ Download the deployment file \
  `curl -L -o deployment.yaml https://raw.githubusercontent.com/containiq/containiq-deployment/master/deployment.yaml`
 
 The `deployment.yaml` file contains all the necessary resources to run 
-the containiq agent in your cluster. 
+the ContainIQ agent in your cluster. 
 
 Add your api key to the secret object at the bottom of the `deployment.yaml` file.
   
 Finally run `kubectl apply -f deployment.yaml `
 
 ### Using Helm 
-`helm repo add containiq https://containiq.github.io/charts/`
-`helm repo update`
+```
+helm repo add containiq https://containiq.github.io/charts/ 
+helm repo update
+```
 
 #### Helm 2
 ```
@@ -53,6 +55,6 @@ helm install containiq containiq/containiq --namespace=containiq \
 ### Integrating with slack 
 Click [here](https://app.containiq.com/profile/integration) to add your slack workspace and channel for notifications. 
 
-###Creating Monitors
-Click [here](https://app.containiq.com/profile/monitors) to create monitors for your kubernetes events and metrics 
+### Creating Monitors
+Click [here](https://app.containiq.com/profile/monitors) to create monitors for your kubernetes events and metrics. 
  
