@@ -85,4 +85,117 @@ metadata:
 stringData:
   notification-config.yaml: |
       Key: <CONTAINIQ_API_KEY>
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: latency-controller
+  namespace: containiq
+  labels:
+    app: latency-controller
+spec:
+  selector:
+    matchLabels:
+      name: latency-controller
+  template:
+    metadata:
+      labels:
+        name: latency-controller
+    spec:
+      containers:
+        - name: containiq-latency-controller
+          imagePullPolicy: Always
+          image: containiq/latency-controller:latest
+          env:
+            - name: NOTIFICATION_FILE_LOCATION
+              value: /containiq/notification-config.yaml
+            - name: API_URL
+              value: https://api.containiq.com/ingest/latency
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+                - SYS_PTRACE
+                - SYS_ADMIN
+          volumeMounts:
+            - name: containiqconfig
+              mountPath: /containiq
+            - name: lsb-release
+              mountPath: /etc/lsb-release.host
+              readOnly: false
+            - name: os-release
+              mountPath: /etc/os-release.host
+              readOnly: false
+            - name: modules-dir
+              mountPath: /lib/modules
+              readOnly: false
+            - name: modules-host
+              mountPath: /lib/modules.host
+              readOnly: false
+            - name: linux-headers-generated
+              mountPath: /usr/src/
+              readOnly: false
+            - name: boot-host
+              mountPath: /boot.host
+              readOnly: false
+            - name: debug
+              mountPath: /sys/kernel/debug
+              readOnly: false
+      hostNetwork: true
+      hostPID: true
+      initContainers:
+        - name: init-headers
+          image: containiq/linux-headers
+          securityContext:
+            privileged: true
+            capabilities:
+              add: ["SYS_ADMIN","NET_ADMIN"]
+          volumeMounts:
+            - name: lsb-release
+              mountPath: /etc/lsb-release.host
+              readOnly: false
+            - name: os-release
+              mountPath: /etc/os-release.host
+              readOnly: false
+            - name: modules-dir
+              mountPath: /lib/modules
+              readOnly: false
+            - name: modules-host
+              mountPath: /lib/modules.host
+              readOnly: false
+            - name: linux-headers-generated
+              mountPath: /usr/src/
+              readOnly: false
+            - name: boot-host
+              mountPath: /boot.host
+              readOnly: false
+      serviceAccountName: containiq-sa
+      volumes:
+        - name: lsb-release
+          hostPath:
+            path: /etc/lsb-release
+        - name: os-release
+          hostPath:
+            path: /etc/os-release
+        - name: modules-dir
+          hostPath:
+            path: /var/cache/linux-headers/modules_dir
+        - name: linux-headers-generated
+          hostPath:
+            path: /var/cache/linux-headers/generated
+        - name: boot-host
+          hostPath:
+            path: /boot
+        - name: modules-host
+          hostPath:
+            path: /lib/modules
+        - name: debug
+          hostPath:
+            path: /sys/kernel/debug
+        - name: containiqconfig
+          projected:
+            sources:
+              - secret:
+                  name: containiq-notification
+
 
