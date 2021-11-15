@@ -7,6 +7,17 @@ metadata:
 spec: {}
 status: {}
 ---
+#notification secret
+apiVersion: v1
+kind: Secret
+metadata:
+  creationTimestamp: null
+  name: containiq-notification
+  namespace: containiq
+stringData:
+  notification-config.yaml: |
+    Key: <CONTAINIQ_API_KEY>
+---
 #deployment
 apiVersion: apps/v1
 kind: Deployment
@@ -74,17 +85,6 @@ subjects:
   - kind: ServiceAccount
     namespace: containiq
     name: containiq-sa
----
-#notification secret
-apiVersion: v1
-kind: Secret
-metadata:
-  creationTimestamp: null
-  name: containiq-notification
-  namespace: containiq
-stringData:
-  notification-config.yaml: |
-      Key: <CONTAINIQ_API_KEY>
 ---
 apiVersion: apps/v1
 kind: DaemonSet
@@ -200,5 +200,113 @@ spec:
             sources:
               - secret:
                   name: containiq-notification
-
-
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: fluentd
+  namespace: containiq
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: fluentd
+  namespace: containiq
+rules:
+  - apiGroups:
+      - ''
+    resources:
+      - pods
+      - namespaces
+    verbs:
+      - get
+      - list
+      - watch
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: fluentd
+roleRef:
+  kind: ClusterRole
+  name: fluentd
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+  - kind: ServiceAccount
+    name: fluentd
+    namespace: containiq
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: fluentd
+  namespace: containiq
+  labels:
+    name: fluentd
+spec:
+  selector:
+    matchLabels:
+      name: fluentd
+  template:
+    metadata:
+      labels:
+        name: fluentd
+    spec:
+      serviceAccount: fluentd
+      serviceAccountName: fluentd
+      tolerations:
+        - key: node-role.kubernetes.io/master
+          effect: NoSchedule
+      containers:
+        - name: fluentd
+          imagePullPolicy: Always
+          image: containiq/logging-agent
+          env:
+            # https://github.com/fabric8io/fluent-plugin-kubernetes_metadata_filter#environment-variables-for-kubernetes
+            - name: K8S_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            # TODO: should we set this here or another k8s resource?
+            - name: INGEST_LOGS_ENDPOINT_URL
+              value: https://api.containiq.com/ingest/logs
+            - name: NOTIFICATION_FILE_LOCATION
+              value: /containiq/notification-config.yaml
+            - name: FLUENT_KUBERNETES_METADATA_SKIP_LABELS
+              value: 'true'
+            - name: FLUENT_KUBERNETES_METADATA_SKIP_CONTAINER_METADATA
+              value: 'true'
+            - name: FLUENT_KUBERNETES_METADATA_SKIP_NAMESPACE_METADATA
+              value: 'true'
+            - name: FLUENT_KUBERNETES_METADATA_SKIP_MASTER_URL
+              value: 'true'
+            - name: FLUENT_CONTAINER_TAIL_EXCLUDE_PATH
+              value: /var/log/containers/fluent*
+            - name: FLUENT_CONTAINER_TAIL_PARSER_TYPE
+              value: /^(?<time>.+) (?<stream>stdout|stderr)( (?<logtag>.))? (?<log>.*)$/
+          resources:
+            limits:
+              memory: 200Mi
+            requests:
+              cpu: 100m
+              memory: 200Mi
+          volumeMounts:
+            - name: varlog
+              mountPath: /var/log
+            - name: varlibdockercontainers
+              mountPath: /var/lib/docker/containers
+              readOnly: true
+            - name: containiqconfig
+              mountPath: /containiq
+      volumes:
+        - name: varlog
+          hostPath:
+            path: /var/log
+        - name: varlibdockercontainers
+          hostPath:
+            path: /var/lib/docker/containers
+        - name: containiqconfig
+          projected:
+            sources:
+              - secret:
+                  name: containiq-notification
