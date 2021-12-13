@@ -37,6 +37,11 @@ spec:
           env:
             - name: NOTIFICATION_FILE_LOCATION
               value: /containiq/notification-config.yaml
+            - name: CLUSTER_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: cluster-config
+                  key: cluster-name
           volumeMounts:
             - name: containiqconfig
               mountPath: /containiq
@@ -114,6 +119,11 @@ spec:
               value: /containiq/notification-config.yaml
             - name: API_URL
               value: https://api.containiq.com/ingest/latency
+            - name: CLUSTER_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: cluster-config
+                  key: cluster-name
           securityContext:
             privileged: true
             capabilities:
@@ -284,6 +294,11 @@ spec:
               value: /var/log/containers/fluent*
             - name: FLUENT_CONTAINER_TAIL_PARSER_TYPE
               value: /^(?<time>.+) (?<stream>stdout|stderr)( (?<logtag>.))? (?<log>.*)$/
+           -  name: CLUSTER_NAME
+              valueFrom:
+               configMapKeyRef:
+                 name: cluster-config
+                 key: cluster-name
           resources:
             limits:
               memory: 200Mi
@@ -310,3 +325,11 @@ spec:
             sources:
               - secret:
                   name: containiq-notification
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-config
+  namespace: containiq
+data:
+  cluster-name: default
