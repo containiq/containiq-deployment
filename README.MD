@@ -25,28 +25,34 @@ Download the deployment file \
 The `deployment.yaml` file contains all the necessary resources to run 
 the ContainIQ agent in your cluster. 
 
-Add your api key to the secret object at the bottom of the `deployment.yaml` file.
+First Add your api key to the secret object on line 19 of the `deployment.yaml` file. Next At the bottom of the file in the configmap replace "default" with a name of your choice. 
+This is later used when filtering by cluster on our backend and allows you to differentiate between your clusters. 
   
 Finally run `kubectl apply -f deployment.yaml `
 
-### Using Helm 
+### Using Helm
 ```
 helm repo add containiq https://containiq.github.io/charts/ 
 helm repo update
 ```
 
 #### Helm 2
+##### Note: replace the "default" text in clusterName with a name of your choice. This allows you to filter and differentiate your clusters in our backend.
 ```
 helm install containiq containiq/containiq --namespace=containiq \
  --set comm.Key=<CONTAINIQ_API_KEY> \
+ --set logs.enabled=true --set latency.enabled=true \
+ --set clusterName=default
  ```
 
 #### Helm 3
- 
+##### Note: replace the "default" text in clusterName with a name of your choice. This allows you to filter and differentiate your clusters in our backend.
  ```
 helm install containiq containiq/containiq --namespace=containiq \
 --create-namespace \
 --set comm.Key=<CONTAINIQ_API_KEY> \
+--set logs.enabled=true --set latency.enabled=true \
+--set clusterName=default
 ```
 
 
