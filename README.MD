@@ -25,7 +25,7 @@ Download the deployment file \
 The `deployment.yaml` file contains all the necessary resources to run 
 the ContainIQ agent in your cluster. 
 
-First Add your api key to the secret object on line 19 of the `deployment.yaml` file. Next At the bottom of the file in the configmap replace "default" with a name of your choice. 
+First Add your api key to the secret object on line 19 of the `deployment.yaml` file. Next on line 28 in the configmap replace "default" with a name of your choice. 
 This is later used when filtering by cluster on our backend and allows you to differentiate between your clusters. 
   
 Finally run `kubectl apply -f deployment.yaml `

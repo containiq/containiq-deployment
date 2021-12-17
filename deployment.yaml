@@ -18,6 +18,15 @@ stringData:
   notification-config.yaml: |
     Key: <CONTAINIQ_API_KEY>
 ---
+#configmap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-config
+  namespace: containiq
+data:
+  cluster-name: default
+---
 #deployment
 apiVersion: apps/v1
 kind: Deployment
@@ -294,7 +303,7 @@ spec:
               value: /var/log/containers/fluent*
             - name: FLUENT_CONTAINER_TAIL_PARSER_TYPE
               value: /^(?<time>.+) (?<stream>stdout|stderr)( (?<logtag>.))? (?<log>.*)$/
-           -  name: CLUSTER_NAME
+            - name: CLUSTER_NAME
               valueFrom:
                configMapKeyRef:
                  name: cluster-config
@@ -325,11 +334,3 @@ spec:
             sources:
               - secret:
                   name: containiq-notification
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: cluster-config
-  namespace: containiq
-data:
-  cluster-name: default
