@@ -119,10 +119,7 @@ spec:
       containers:
         - name: containiq-latency-controller
           imagePullPolicy: Always
-          image: containiq/latency-controller:latest
-          resources:
-            requests:
-              ephemeral-storage: "2Gi"
+          image: containiq/latency-controller:v0.2.0
           env:
             - name: NOTIFICATION_FILE_LOCATION
               value: /containiq/notification-config.yaml
@@ -136,84 +133,32 @@ spec:
           securityContext:
             privileged: true
             capabilities:
-              add:
-                - SYS_PTRACE
-                - SYS_ADMIN
+              add: [ "SYS_ADMIN","NET_ADMIN" ]
           volumeMounts:
             - name: containiqconfig
               mountPath: /containiq
-            - name: lsb-release
-              mountPath: /etc/lsb-release.host
+            - name: host-root
+              mountPath: /host # mount the root from host to /host
               readOnly: false
-            - name: os-release
-              mountPath: /etc/os-release.host
+            - name: usr-src-cache
+              mountPath: /usr/src
               readOnly: false
-            - name: modules-dir
+            - name: modules-cache
               mountPath: /lib/modules
-              readOnly: false
-            - name: modules-host
-              mountPath: /lib/modules.host
-              readOnly: false
-            - name: linux-headers-generated
-              mountPath: /usr/src/
-              readOnly: false
-            - name: boot-host
-              mountPath: /boot.host
-              readOnly: false
-            - name: debug
-              mountPath: /sys/kernel/debug
               readOnly: false
       hostNetwork: true
       hostPID: true
-      initContainers:
-        - name: init-headers
-          image: containiq/linux-headers
-          securityContext:
-            privileged: true
-            capabilities:
-              add: ["SYS_ADMIN","NET_ADMIN"]
-          volumeMounts:
-            - name: lsb-release
-              mountPath: /etc/lsb-release.host
-              readOnly: false
-            - name: os-release
-              mountPath: /etc/os-release.host
-              readOnly: false
-            - name: modules-dir
-              mountPath: /lib/modules
-              readOnly: false
-            - name: modules-host
-              mountPath: /lib/modules.host
-              readOnly: false
-            - name: linux-headers-generated
-              mountPath: /usr/src/
-              readOnly: false
-            - name: boot-host
-              mountPath: /boot.host
-              readOnly: false
       serviceAccountName: containiq-sa
       volumes:
-        - name: lsb-release
+        - name: usr-src-cache
           hostPath:
-            path: /etc/lsb-release
-        - name: os-release
+            path: /var/cache/containiq/usr/src
+        - name: modules-cache
           hostPath:
-            path: /etc/os-release
-        - name: modules-dir
+            path: /var/cache/containiq/lib/modules
+        - name: host-root
           hostPath:
-            path: /var/cache/linux-headers/modules_dir
-        - name: linux-headers-generated
-          hostPath:
-            path: /var/cache/linux-headers/generated
-        - name: boot-host
-          hostPath:
-            path: /boot
-        - name: modules-host
-          hostPath:
-            path: /lib/modules
-        - name: debug
-          hostPath:
-            path: /sys/kernel/debug
+            path: /
         - name: containiqconfig
           projected:
             sources:
