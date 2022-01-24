@@ -55,6 +55,10 @@ helm install containiq containiq/containiq --namespace=containiq \
 --set clusterName=default
 ```
 
+### Running on aws (EKS) ? 
+apply the following patch command 
+
+`kubectl patch ds fluentd -n containiq --type=json -p='[{"op": "remove", "path": "/spec/template/spec/containers/0/env/8"}]'`
 
 ## Setting up notifications
 
