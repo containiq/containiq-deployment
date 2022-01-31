@@ -42,7 +42,7 @@ spec:
     spec:
       containers:
         - name: containiq
-          image: containiq/containiq:v0.6.0
+          image: containiq/containiq:v0.7.0
           env:
             - name: NOTIFICATION_FILE_LOCATION
               value: /containiq/notification-config.yaml
@@ -54,6 +54,12 @@ spec:
           volumeMounts:
             - name: containiqconfig
               mountPath: /containiq
+          lifecycle:
+            preStop:
+              exec:
+                command: [
+                    "/go/bin/shutdown"
+                ]
       serviceAccountName: containiq-sa
       volumes:
         - name: containiqconfig
