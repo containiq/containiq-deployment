@@ -42,7 +42,7 @@ spec:
     spec:
       containers:
         - name: containiq
-          image: containiq/containiq:v0.7.0
+          image: containiq/containiq:v0.8.0
           env:
             - name: NOTIFICATION_FILE_LOCATION
               value: /containiq/notification-config.yaml
@@ -86,7 +86,7 @@ metadata:
   creationTimestamp: null
   name: containiq
 rules:
-  - apiGroups: ["", "metrics.k8s.io"]
+  - apiGroups: ["", "metrics.k8s.io","apps"]
     resources: ["*"]
     verbs: ["get","watch","list"]
 
