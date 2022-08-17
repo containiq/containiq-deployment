@@ -42,7 +42,7 @@ spec:
     spec:
       containers:
         - name: containiq
-          image: containiq/containiq:v0.8.0
+          image: containiq/containiq:v0.9.0
           env:
             - name: NOTIFICATION_FILE_LOCATION
               value: /containiq/notification-config.yaml
@@ -125,12 +125,14 @@ spec:
       containers:
         - name: containiq-latency-controller
           imagePullPolicy: Always
-          image: containiq/latency-controller:v0.4.0
+          image: containiq/latency-controller:v0.9.0
           env:
             - name: NOTIFICATION_FILE_LOCATION
               value: /containiq/notification-config.yaml
             - name: API_URL
-              value: https://api.containiq.com/ingest/latency
+              value: https://api.containiq.com/ingest/v2/latency/traces
+            - name: EXCLUDE_BODIES
+              value: "True"
             - name: CLUSTER_NAME
               valueFrom:
                 configMapKeyRef:
@@ -140,6 +142,10 @@ spec:
             privileged: true
             capabilities:
               add: [ "SYS_ADMIN","NET_ADMIN" ]
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
           volumeMounts:
             - name: containiqconfig
               mountPath: /containiq
