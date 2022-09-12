@@ -125,14 +125,14 @@ spec:
       containers:
         - name: containiq-latency-controller
           imagePullPolicy: Always
-          command: [ "ciq" ]
-          args: [ "network" ]
-          image: containiq/latency-controller:v1.2.0
+          image: containiq/latency-controller:v1.4.0
           env:
             - name: NOTIFICATION_FILE_LOCATION
               value: /containiq/notification-config.yaml
             - name: API_URL
               value: https://api.containiq.com/ingest/v2/latency/traces
+            - name: STACK_API_URL
+              value: https://api.containiq.com/ingest/profiles/
             - name: EXCLUDE_BODIES
               value: "True"
             - name: CLUSTER_NAME
@@ -140,6 +140,10 @@ spec:
                 configMapKeyRef:
                   name: cluster-config
                   key: cluster-name
+            - name: K8S_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
           securityContext:
             privileged: true
             capabilities:
