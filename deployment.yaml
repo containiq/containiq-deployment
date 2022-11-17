@@ -125,7 +125,7 @@ spec:
       containers:
         - name: containiq-latency-controller
           imagePullPolicy: Always
-          image: containiq/latency-controller:v1.4.0
+          image: containiq/latency-controller:v1.7.0
           env:
             - name: NOTIFICATION_FILE_LOCATION
               value: /containiq/notification-config.yaml
